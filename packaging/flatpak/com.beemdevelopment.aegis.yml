@@ -1,0 +1,75 @@
+# Flatpak manifest for Aegis Desktop.
+#
+# The permission set is the point of this file, so it is worth reading rather than skimming. Aegis
+# is an offline application that holds every one of your second factors, so it asks for as close to
+# nothing as a GUI application can:
+#
+#   * no --share=network. The app makes no network connections; without the permission it cannot
+#     start making them, and neither can anything that ends up running inside it.
+#   * no --filesystem=home. File access goes through the portal, so the sandbox only ever sees the
+#     specific file the user picked in the chooser.
+#   * --talk-name for the Secret Service, which is what backs the optional keychain unlock, and for
+#     logind, which is how the app learns the session locked or the machine is suspending.
+#
+# The vault lives in the app's own data directory, which for a Flatpak is
+# ~/.var/app/com.beemdevelopment.aegis/data/aegis/aegis.json.
+app-id: com.beemdevelopment.aegis
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk21
+command: aegis
+
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+
+  # Clipboard and window management need these; neither grants network or filesystem access.
+  - --socket=session-bus
+
+  # The optional keychain unlock slot.
+  - --talk-name=org.freedesktop.secrets
+
+  # Auto-lock on screen lock and on suspend.
+  - --system-talk-name=org.freedesktop.login1
+  - --talk-name=org.freedesktop.ScreenSaver
+  - --talk-name=org.gnome.ScreenSaver
+  - --talk-name=org.kde.screensaver
+
+  # User presence checks route through the desktop's polkit agent.
+  - --system-talk-name=org.freedesktop.PolicyKit1
+
+  # File chooser via the portal, so the sandbox never sees the rest of the home directory.
+  - --talk-name=org.freedesktop.portal.Desktop
+
+modules:
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk21/install.sh
+
+  - name: aegis
+    buildsystem: simple
+    build-options:
+      env:
+        JAVA_HOME: /app/jre
+        PATH: /app/jre/bin:/usr/bin:/bin
+    build-commands:
+      - ./gradlew --offline :desktop:createDistributable
+      - mkdir -p /app/aegis
+      - cp -r desktop/build/compose/binaries/main/app/aegis/* /app/aegis/
+      - install -Dm755 packaging/flatpak/aegis-wrapper.sh /app/bin/aegis
+      - install -Dm644 packaging/linux/com.beemdevelopment.aegis.desktop
+        /app/share/applications/com.beemdevelopment.aegis.desktop
+      - install -Dm644 packaging/linux/com.beemdevelopment.aegis.metainfo.xml
+        /app/share/metainfo/com.beemdevelopment.aegis.metainfo.xml
+      - install -Dm644 packaging/linux/com.beemdevelopment.aegis.policy
+        /app/share/polkit-1/actions/com.beemdevelopment.aegis.policy
+      - install -Dm644 desktop/src/main/resources/icons/aegis.png
+        /app/share/icons/hicolor/512x512/apps/com.beemdevelopment.aegis.png
+    sources:
+      - type: dir
+        path: ../..

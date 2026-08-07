@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+
+<!--
+  Lets Aegis ask the desktop's own authentication agent to confirm the user is present before
+  releasing the vault key held in the keyring.
+
+  Going through polkit rather than talking to fprintd directly is what makes a fingerprint work
+  without Aegis knowing anything about fingerprints: the agent presents whatever the PAM stack is
+  configured to accept, and Aegis never sees the credential.
+
+  auth_self means "this user's own credential", not the administrator's — unlocking your own vault
+  is not an administrative action. allow_inactive is no, so an authentication cannot be satisfied
+  from a session that is not the one at the console.
+-->
+<policyconfig>
+  <vendor>Beem Development</vendor>
+  <vendor_url>https://github.com/beemdevelopment/Aegis</vendor_url>
+
+  <action id="com.beemdevelopment.aegis.unlock">
+    <description>Unlock your Aegis vault</description>
+    <message>Authentication is required to unlock your Aegis vault</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_self</allow_active>
+    </defaults>
+  </action>
+</policyconfig>

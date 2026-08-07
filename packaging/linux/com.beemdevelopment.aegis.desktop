@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Aegis Authenticator
+GenericName=Two-factor authentication
+Comment=Generate two-factor authentication codes
+Exec=aegis %f
+Icon=com.beemdevelopment.aegis
+Terminal=false
+Categories=Utility;Security;
+Keywords=2FA;TOTP;HOTP;OTP;authenticator;two-factor;
+StartupWMClass=com-beemdevelopment-aegis-desktop-MainKt
+MimeType=x-scheme-handler/otpauth;
+SingleMainWindow=true

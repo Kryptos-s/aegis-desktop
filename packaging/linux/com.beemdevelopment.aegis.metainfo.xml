@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.beemdevelopment.aegis</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Aegis Authenticator</name>
+  <summary>Generate two-factor authentication codes</summary>
+
+  <description>
+    <p>
+      Aegis is a free, secure and open source authenticator app. It generates the one-time codes
+      used for two-factor authentication, and stores them in an encrypted vault on your own
+      machine.
+    </p>
+    <p>
+      The vault format is the same one Aegis for Android uses, so a single vault file can be kept
+      in sync between a phone and a desktop by whatever means you already trust.
+    </p>
+    <p>
+      Aegis makes no network connections. Nothing in your vault leaves the machine unless you
+      export it yourself.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">com.beemdevelopment.aegis.desktop</launchable>
+  <url type="homepage">https://github.com/beemdevelopment/Aegis</url>
+  <url type="bugtracker">https://github.com/beemdevelopment/Aegis/issues</url>
+
+  <content_rating type="oars-1.1"/>
+
+  <categories>
+    <category>Utility</category>
+    <category>Security</category>
+  </categories>
+</component>
