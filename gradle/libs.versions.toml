@@ -1,0 +1,50 @@
+[versions]
+kotlin = "2.4.10"
+compose = "1.11.1"
+coroutines = "1.11.0"
+
+# Core (security-critical) dependencies. Keep this list as short as possible:
+# every entry here is code that runs in the same address space as the vault key.
+bouncycastle = "1.85"
+jspecify = "1.0.1"
+json = "20260719"
+protobuf = "4.35.1"
+protobufPlugin = "0.10.0"
+zxing = "3.5.4"
+zip4j = "2.11.6"
+sqliteJdbc = "3.53.2.1"
+sfmCsv = "9.0.2"
+
+# Desktop / platform integration
+jna = "5.19.1"
+slf4j = "2.0.18"
+
+# Test
+junit = "4.13.2"
+
+[libraries]
+bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+json = { module = "org.json:json", version.ref = "json" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
+protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
+sfm-csv = { module = "org.simpleflatmapper:sfm-csv", version.ref = "sfmCsv" }
+
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
+
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
