@@ -1,0 +1,222 @@
+package com.beemdevelopment.aegis.importers;
+
+import com.beemdevelopment.aegis.encoding.Base32;
+import com.beemdevelopment.aegis.encoding.Base64;
+import com.beemdevelopment.aegis.encoding.EncodingException;
+import com.beemdevelopment.aegis.encoding.Hex;
+import com.beemdevelopment.aegis.otp.OtpInfo;
+import com.beemdevelopment.aegis.otp.OtpInfoException;
+import com.beemdevelopment.aegis.otp.TotpInfo;
+import com.beemdevelopment.aegis.util.JsonUtils;
+import com.beemdevelopment.aegis.util.PreferenceParser;
+import com.beemdevelopment.aegis.vault.VaultEntry;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.stream.XMLStreamException;
+
+public class AuthyImporter extends DatabaseImporter {
+    private static final String _authFilename = "com.authy.storage.tokens.authenticator";
+    private static final String _authyFilename = "com.authy.storage.tokens.authy";
+
+    private static final int ITERATIONS = 1000;
+    private static final int KEY_SIZE = 256;
+    private static final byte[] IV = new byte[]{
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+
+    @Override
+    public State read(InputStream stream, boolean isInternal) throws DatabaseImporterException {
+        try {
+            JSONArray array = new JSONArray();
+            for (PreferenceParser.XmlEntry entry : PreferenceParser.parse(stream)) {
+                if (entry.Name.equals(String.format("%s.key", _authFilename))
+                        || entry.Name.equals(String.format("%s.key", _authyFilename))) {
+                    array = new JSONArray(entry.Value);
+                    break;
+                }
+            }
+
+            return read(array);
+        } catch (XMLStreamException | JSONException | IOException e) {
+            throw new DatabaseImporterException(e);
+        }
+    }
+
+    private State read(JSONArray array) throws DatabaseImporterException {
+        try {
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+                if (!obj.has("decryptedSecret") && !obj.has("secretSeed")) {
+                    return new EncryptedState(array);
+                }
+            }
+        } catch (JSONException e) {
+            throw new DatabaseImporterException(e);
+        }
+
+        return new DecryptedState(array);
+    }
+
+    public static class EncryptedState extends DatabaseImporter.State {
+        private JSONArray _array;
+
+        private EncryptedState(JSONArray array) {
+            super(true);
+            _array = array;
+        }
+
+        @Override
+        public DecryptedState decrypt(char[] password) throws DatabaseImporterException {
+            try {
+                for (int i = 0; i < _array.length(); i++) {
+                    JSONObject obj = _array.getJSONObject(i);
+                    String secretString = JsonUtils.optString(obj, "encryptedSecret");
+                    if (secretString == null) {
+                        continue;
+                    }
+
+                    byte[] encryptedSecret = Base64.decode(secretString);
+                    byte[] salt = obj.getString("salt").getBytes(StandardCharsets.UTF_8);
+                    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+                    KeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_SIZE);
+                    SecretKey key = factory.generateSecret(spec);
+                    key = new SecretKeySpec(key.getEncoded(), "AES");
+
+                    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    IvParameterSpec ivSpec = new IvParameterSpec(IV);
+                    cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
+
+                    byte[] secret = cipher.doFinal(encryptedSecret);
+                    obj.remove("encryptedSecret");
+                    obj.remove("salt");
+                    obj.put("decryptedSecret", new String(secret, StandardCharsets.UTF_8));
+                }
+
+                return new DecryptedState(_array);
+            } catch (JSONException
+                    | EncodingException
+                    | NoSuchAlgorithmException
+                    | InvalidKeySpecException
+                    | InvalidAlgorithmParameterException
+                    | InvalidKeyException
+                    | NoSuchPaddingException
+                    | BadPaddingException
+                    | IllegalBlockSizeException e) {
+                throw new DatabaseImporterException(e);
+            }
+        }
+    }
+
+    public static class DecryptedState extends DatabaseImporter.State {
+        private JSONArray _array;
+
+        private DecryptedState(JSONArray array) {
+            super(false);
+            _array = array;
+        }
+
+        @Override
+        public Result convert() throws DatabaseImporterException {
+            Result result = new Result();
+
+            try {
+                for (int i = 0; i < _array.length(); i++) {
+                    JSONObject entryObj = _array.getJSONObject(i);
+                    try {
+                        VaultEntry entry = convertEntry(entryObj);
+                        result.addEntry(entry);
+                    } catch (DatabaseImporterEntryException e) {
+                        result.addError(e);
+                    }
+                }
+            } catch (JSONException e) {
+                throw new DatabaseImporterException(e);
+            }
+
+            return result;
+        }
+
+        private static VaultEntry convertEntry(JSONObject entry) throws DatabaseImporterEntryException {
+            try {
+                AuthyEntryInfo authyEntryInfo = new AuthyEntryInfo();
+                authyEntryInfo.OriginalName = JsonUtils.optString(entry, "originalName");
+                authyEntryInfo.OriginalIssuer = JsonUtils.optString(entry, "originalIssuer");
+                authyEntryInfo.AccountType = JsonUtils.optString(entry, "accountType");
+                authyEntryInfo.Name = entry.optString("name");
+
+                boolean isAuthy = entry.has("secretSeed");
+                sanitizeEntryInfo(authyEntryInfo, isAuthy);
+
+                byte[] secret;
+                if (isAuthy) {
+                    secret = Hex.decode(entry.getString("secretSeed"));
+                } else {
+                    secret = Base32.decode(entry.getString("decryptedSecret"));
+                }
+
+                int digits = entry.getInt("digits");
+                OtpInfo info = new TotpInfo(secret, OtpInfo.DEFAULT_ALGORITHM, digits, isAuthy ? 10 : TotpInfo.DEFAULT_PERIOD);
+                return new VaultEntry(info, authyEntryInfo.Name, authyEntryInfo.Issuer);
+            } catch (OtpInfoException | JSONException | EncodingException e) {
+                throw new DatabaseImporterEntryException(e, entry.toString());
+            }
+        }
+
+        private static void sanitizeEntryInfo(AuthyEntryInfo info, boolean isAuthy) {
+            if (!isAuthy) {
+                String separator = "";
+
+                if (info.OriginalIssuer != null) {
+                    info.Issuer = info.OriginalIssuer;
+                } else if (info.OriginalName != null && info.OriginalName.contains(":")) {
+                    info.Issuer = info.OriginalName.substring(0, info.OriginalName.indexOf(":"));
+                    separator = ":";
+                } else if (info.Name.contains(" - ")) {
+                    info.Issuer = info.Name.substring(0, info.Name.indexOf(" - "));
+                    separator = " - ";
+                } else {
+                    info.Issuer = info.AccountType.substring(0, 1).toUpperCase() + info.AccountType.substring(1);
+                }
+
+                info.Name = info.Name.replace(info.Issuer + separator, "");
+            } else {
+                info.Issuer = info.Name;
+                info.Name = "";
+            }
+
+            if (info.Name.startsWith(": ")) {
+                info.Name = info.Name.substring(2);
+            }
+        }
+    }
+
+    private static class AuthyEntryInfo {
+        String OriginalName;
+        String OriginalIssuer;
+        String AccountType;
+        String Issuer;
+        String Name;
+    }
+}
