@@ -1,172 +1,104 @@
-<img align="left" width="80" height="80" src="metadata/en-US/images/icon.png"
-alt="App icon">
+# Aegis Desktop
 
-# Aegis Authenticator
+A desktop port of [Aegis Authenticator](https://github.com/beemdevelopment/Aegis), the two-factor
+authentication app for Android.
 
-<br>
+It reads and writes the same vault file as the Android app — same format, same crypto, same
+importers — so one vault works on both. Linux is the primary target. Windows and macOS build and
+have platform backends written, but have not been run on either yet.
 
-[![Build](https://github.com/beemdevelopment/Aegis/actions/workflows/build-app-workflow.yaml/badge.svg)](https://github.com/beemdevelopment/Aegis/actions/workflows/build-app-workflow.yaml?query=branch%3Amaster) [![Crowdin](https://badges.crowdin.net/aegis-authenticator/localized.svg)](https://crowdin.com/project/aegis-authenticator) [![Donate](https://img.shields.io/badge/donate-buy%20us%20a%20beer-%23FF813F)](https://www.buymeacoffee.com/beemdevelopment) [![Matrix](https://img.shields.io/matrix/aegis:matrix.org?color=blue)](https://matrix.to/#/#aegis:matrix.org)
+Aegis Desktop is an unofficial port. It is not affiliated with Beem Development, who wrote the
+original app and everything security-critical in it.
 
-**Aegis Authenticator** is a free, secure and open source 2FA app for Android.
-It aims to provide a secure authenticator for your online services, while also
-including some features missing in existing authenticator apps, like proper
-encryption and backups. Aegis supports HOTP and TOTP, making it compatible with
-thousands of services.
+## What works
 
-For a list of frequently asked questions, please check out [the FAQ](FAQ.md).
+Unlock, the entry list with live codes, adding and editing entries, groups, search and filtering,
+import from 19 other authenticators, export, backups, preferences, and an optional keychain-backed
+unlock slot.
 
-The security design of the app and the vault format is described in detail in
-[this document](docs/vault.md).
+Codes come from the same OTP code the Android app uses: TOTP, HOTP, Steam, Yandex and MOTP.
 
-## Features
+## Building
 
-- Free and open source
-- Secure
-  - The vault is encrypted (AES-256-GCM), and can be unlocked with:
-    - Password (scrypt)
-    - Biometrics (Android Keystore)
-  - Screen capture prevention
-  - Tap to reveal
-- Compatible with Google Authenticator
-- Supports industry standard algorithms:
-  [HOTP](https://tools.ietf.org/html/rfc4226) and
-  [TOTP](https://tools.ietf.org/html/rfc6238)
-- Lots of ways to add new entries
-  - Scan a QR code or an image of one
-  - Enter details manually
-  - Import from other authenticator apps: 2FAS Authenticator, Authenticator
-    Plus, Authy, andOTP, FreeOTP, FreeOTP+, Google Authenticator, Microsoft
-    Authenticator, Plain text, Steam, TOTP Authenticator and WinAuth (root
-    access is required for some of these)
-- Organization
-  - Alphabetic/custom sorting
-  - Custom or automatically generated icons
-  - Group entries together
-  - Advanced entry editing
-  - Search by name/issuer
-- Material design with multiple themes: Light, Dark, AMOLED
-- Export (plaintext or encrypted)
-- Automatic backups of the vault to a location of your choosing
+Needs a JDK 21. No Android SDK.
 
-## Screenshots
-
-[<img width=200 alt="Screenshot 1"
-src="metadata/en-US/images/phoneScreenshots/screenshot1.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot1.png?raw=true)
-[<img width=200 alt="Screenshot 2"
-src="metadata/en-US/images/phoneScreenshots/screenshot2.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot2.png?raw=true)
-[<img width=200 alt="Screenshot 3"
-src="metadata/en-US/images/phoneScreenshots/screenshot3.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot3.png?raw=true)
-[<img width=200 alt="Screenshot 4"
-src="metadata/en-US/images/phoneScreenshots/screenshot4.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot4.png?raw=true)
-
-[<img width=200 alt="Screenshot 5"
-src="metadata/en-US/images/phoneScreenshots/screenshot5.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot5.png?raw=true)
-[<img width=200 alt="Screenshot 6"
-src="metadata/en-US/images/phoneScreenshots/screenshot6.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot6.png?raw=true)
-[<img width=200 alt="Screenshot 7"
-src="metadata/en-US/images/phoneScreenshots/screenshot7.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot7.png?raw=true)
-[<img width=200 alt="Screenshot 8"
-src="metadata/en-US/images/phoneScreenshots/screenshot8.png?raw=true">](metadata/en-US/images/phoneScreenshots/screenshot8.png?raw=true)
-
-## Downloads
-
-Aegis is available on the Google Play Store and on F-Droid.
-
-[<img height=80 alt="Get it on Google Play"
-src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
-/>](http://play.google.com/store/apps/details?id=com.beemdevelopment.aegis)
-[<img height="80" alt="Get it on F-Droid"
-src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-/>](https://f-droid.org/app/com.beemdevelopment.aegis)
-
-### Verification
-
-APK releases on Google Play and GitHub are signed using the same key. They can
-be verified using
-[apksigner](https://developer.android.com/studio/command-line/apksigner.html#options-verify):
-
-```
-apksigner verify --print-certs --verbose aegis.apk
+```bash
+./gradlew build
 ```
 
-The output should look like:
+Run from the source tree:
 
-```
-Verifies
-Verified using v1 scheme (JAR signing): true
-Verified using v2 scheme (APK Signature Scheme v2): true
+```bash
+./gradlew :desktop:run
 ```
 
-The certificate fingerprints should correspond to the ones listed below:
+Native package for the current platform — `.deb`/`.rpm` on Linux, `.msi` on Windows, `.dmg` on
+macOS:
 
-```
-Owner: CN=Beem Development
-Issuer: CN=Beem Development
-Serial number: 172380c
-Valid from: Sat Feb 09 14:05:49 CET 2019 until: Wed Feb 03 14:05:49 CET 2044
-Certificate fingerprints:
-   MD5:  AA:EE:86:DB:C7:B8:88:9F:1F:C9:D0:7A:EC:37:36:32
-   SHA1: 59:FB:63:B7:1F:CE:95:74:6C:EB:1E:1A:CB:2C:2E:45:E5:FF:13:50
-   SHA256: C6:DB:80:A8:E1:4E:52:30:C1:DE:84:15:EF:82:0D:13:DC:90:1D:8F:E3:3C:F3:AC:B5:7B:68:62:D8:58:A8:23
+```bash
+./gradlew :desktop:packageDistributionForCurrentOS
 ```
 
-### Icon packs
+`packaging/` has an AppImage script and a Flatpak manifest. On Linux, install the polkit policy if
+you want the app to be able to ask for a fingerprint or your account password:
 
-Aegis supports icon packs to make it easier to assign icons to the entries in
-your vault. There are no official icon packs, but the community maintains a
-number of third-party icon packs you may want to check out. To learn how to
-create your own Aegis-compatible icon pack, see [the
-documentation](docs/iconpacks.md).
+```bash
+sudo install -Dm644 packaging/linux/com.beemdevelopment.aegis.policy /usr/share/polkit-1/actions/com.beemdevelopment.aegis.policy
+```
 
-- [aegis-icons](https://github.com/aegis-icons/aegis-icons)
+Without it the app reports that check as unavailable rather than skipping it.
 
-  Unofficial monochrome-styled 2FA icons.
+## Layout
 
-  [<img width=500 alt="aegis-icons preview"
-  src="metadata/en-US/images/iconPacks/aegis-icons.png">](https://github.com/aegis-icons/aegis-icons)
+```
+core/       Crypto, vault format, OTP algorithms, icon packs, importers. Ported
+            from upstream, still plain JVM Java. The parsing and crypto are
+            unchanged, so vaults stay byte-compatible.
 
-- [delta-aegis-icons](https://github.com/Delta-Icons/aegis-icons)
+platform/   OS integration: secret storage, user presence, clipboard, session
+            monitoring, autostart, single instance. One interface per capability
+            with a Linux, Windows and macOS implementation.
 
-  Delta version of the unofficial monochrome-styled 2FA icon pack aegis-icons.
+desktop/    Compose Multiplatform UI, lock state machine, preferences, audit log.
+```
 
-  [<img width=500 alt="delta-icons preview"
-  src="metadata/en-US/images/iconPacks/delta-icons.png">](https://github.com/Delta-Icons/aegis-icons)
+## Where the vault lives
 
-- [aegis-simple-icons](https://github.com/alexbakker/aegis-simple-icons) \*
+| | |
+|---|---|
+| Linux | `$XDG_DATA_HOME/aegis/aegis.json`, default `~/.local/share/aegis/aegis.json` |
+| Windows | `%LOCALAPPDATA%\Aegis\aegis.json` |
+| macOS | `~/Library/Application Support/Aegis/aegis.json` |
 
-  This project periodically generates an icon pack for Aegis based on [Simple
-  Icons](https://simpleicons.org/).
+`AEGIS_HOME` overrides it. That is the intended way to keep the vault on an encrypted volume or in a
+directory you sync yourself.
 
-  [<img width=500 alt="aegis-simple-icons preview"
-  src="metadata/en-US/images/iconPacks/aegis-simple-icons.png">](https://github.com/alexbakker/aegis-simple-icons)
+There is no built-in sync. The vault is a single encrypted blob, so two devices writing it produce a
+conflict no syncing tool can merge. Keep one device authoritative, or move entries with export and
+import.
 
-- [aegis-simple-icons-outlined](https://github.com/michaelschattgen/aegis-simple-icons-outlined) \*
+`VaultInteropTest` reads a vault written by the Android app, writes it back out, and checks the file
+structure field by field.
 
-  This is a variant on the aegis-simple-icons pack where the icons contain no solid background and just the outlines are being used.
+## Differences from the Android app
 
-  [<img width=500 alt="aegis-simple-icons-outlined preview"
-  src="metadata/en-US/images/iconPacks/aegis-simple-icons-outlined.png">](https://github.com/michaelschattgen/aegis-simple-icons-outlined)
+Direct import from another app's private storage using root access is gone; there is no desktop
+equivalent. Those importers still read an exported file, and several can read the source app's
+internal database if you extract it yourself.
 
-\* The icons are automatically generated, so
-not all of them are as high quality as the ones you'll find in
-[aegis-icons](https://github.com/aegis-icons/aegis-icons).
+Biometric unlock becomes an OS keychain slot with an optional user-presence check. QR scanning uses
+an image file, a region of the screen, or the clipboard instead of a camera. Android's `FLAG_SECURE`
+screenshot blocking has no desktop equivalent and is not claimed.
 
-## Contributing
+Added: auto-lock on session lock and on suspend, a clipboard that clears itself, and keyboard
+shortcuts.
 
-Looking to contribute to Aegis? That's great! There are a couple of ways to help
-out. Translations, bug reports and pull requests are all greatly appreciated.
-Please refer to our [contributing guidelines](CONTRIBUTING.md) to get started.
+## Security
 
-Swing by our Matrix room to interact with other contributors:
-[#aegis:matrix.org](https://matrix.to/#/#aegis:matrix.org).
+[SECURITY.md](SECURITY.md) covers the vault format, what locking does and does not guarantee, and
+what this does not protect against.
 
-## License
+## Licence
 
-This project is licensed under the GNU General Public License v3.0. See the
-[LICENSE](LICENSE) file for details.
-
-A couple of libraries vendored in Aegis' repository are licensed under a
-different license:
-
-- [TextDrawable](app/src/main/java/com/amulyakhare/textdrawable)
-- [TrustedIntents](app/src/main/java/info/guardianproject/trustedintents)
+GPL-3.0-or-later, as upstream. See [LICENSE](LICENSE). The crypto, vault format and importers are
+Beem Development's work.
