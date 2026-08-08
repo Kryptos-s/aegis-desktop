@@ -3,20 +3,20 @@
 A desktop port of [Aegis Authenticator](https://github.com/beemdevelopment/Aegis), the two-factor
 authentication app for Android.
 
-It reads and writes the same vault file as the Android app — same format, same crypto, same
-importers — so one vault works on both. Linux is the primary target. Windows and macOS build and
-have platform backends written, but have not been run on either yet.
+**This is an unofficial port.** It is not affiliated with, endorsed by, or supported by Beem
+Development, who wrote Aegis. Do not report problems with it to them. The vault format, the crypto
+and the importers are their work; this project moves that code to the desktop and adds a new user
+interface around it.
 
-Aegis Desktop is an unofficial port. It is not affiliated with Beem Development, who wrote the
-original app and everything security-critical in it.
+It reads and writes the same vault file as the Android app, so one vault works on both. Linux is
+the primary target. Windows and macOS build and have platform backends written, but neither has
+been run yet.
 
 ## What works
 
 Unlock, the entry list with live codes, adding and editing entries, groups, search and filtering,
 import from 19 other authenticators, export, backups, preferences, and an optional keychain-backed
-unlock slot.
-
-Codes come from the same OTP code the Android app uses: TOTP, HOTP, Steam, Yandex and MOTP.
+unlock slot. TOTP, HOTP, Steam, Yandex and MOTP, from the same OTP code the Android app uses.
 
 ## Building
 
@@ -70,28 +70,34 @@ desktop/    Compose Multiplatform UI, lock state machine, preferences, audit log
 | Windows | `%LOCALAPPDATA%\Aegis\aegis.json` |
 | macOS | `~/Library/Application Support/Aegis/aegis.json` |
 
-`AEGIS_HOME` overrides it. That is the intended way to keep the vault on an encrypted volume or in a
-directory you sync yourself.
+`AEGIS_HOME` overrides it. That is the intended way to keep the vault on an encrypted volume or in
+a directory you sync yourself.
 
-There is no built-in sync. The vault is a single encrypted blob, so two devices writing it produce a
-conflict no syncing tool can merge. Keep one device authoritative, or move entries with export and
-import.
+There is no built-in sync. The vault is a single encrypted blob, so two devices writing it produce
+a conflict no syncing tool can merge. Keep one device authoritative, or move entries with export
+and import.
 
-`VaultInteropTest` reads a vault written by the Android app, writes it back out, and checks the file
-structure field by field.
+`VaultInteropTest` reads a vault written by the Android app, writes it back out, and checks the
+file structure field by field.
 
-## Differences from the Android app
+## Changes from the Android app
 
-Direct import from another app's private storage using root access is gone; there is no desktop
-equivalent. Those importers still read an exported file, and several can read the source app's
-internal database if you extract it yourself.
+Per section 5 of the GPL, this is a modified version of Aegis. The Android application was removed
+in August 2026 and replaced with a desktop one. In summary:
 
-Biometric unlock becomes an OS keychain slot with an optional user-presence check. QR scanning uses
-an image file, a region of the screen, or the clipboard instead of a camera. Android's `FLAG_SECURE`
-screenshot blocking has no desktop equivalent and is not claimed.
+- The Android UI, resources and manifest are gone. The user interface is new, written in Compose
+  Multiplatform.
+- `core/` keeps upstream's crypto, vault format, OTP algorithms, icon packs and importers, with the
+  android, androidx and Guava dependencies replaced by JVM equivalents. Parsing, crypto parameters
+  and JSON keys are unchanged.
+- Direct import from another app's private storage using root access is gone; there is no desktop
+  equivalent. Those importers still read an exported file.
+- Biometric unlock became an OS keychain slot with an optional user-presence check.
+- QR scanning uses an image file, a region of the screen, or the clipboard instead of a camera.
+- Added: auto-lock on session lock and on suspend, a clipboard that clears itself, keyboard
+  shortcuts.
 
-Added: auto-lock on session lock and on suspend, a clipboard that clears itself, and keyboard
-shortcuts.
+The full commit history is in this repository, on top of upstream's.
 
 ## Security
 
@@ -100,5 +106,14 @@ what this does not protect against.
 
 ## Licence
 
-GPL-3.0-or-later, as upstream. See [LICENSE](LICENSE). The crypto, vault format and importers are
-Beem Development's work.
+GPL-3.0, the same licence as upstream Aegis. See [LICENSE](LICENSE).
+
+Copyright for the original work belongs to Beem Development and the Aegis contributors.
+
+`core/src/main/java/com/beemdevelopment/aegis/crypto/bc/` is vendored from Bouncy Castle and is
+under the Bouncy Castle licence (MIT), with its copyright notice intact.
+
+Third-party dependencies, all compatible with the GPL: Bouncy Castle (MIT), ZXing (Apache-2.0),
+org.json (Public Domain), Protocol Buffers (BSD-3-Clause), zip4j (Apache-2.0), SQLite JDBC
+(Apache-2.0), SimpleFlatMapper (MIT), JNA (Apache-2.0 or LGPL-2.1-or-later), Compose Multiplatform
+and Kotlin (Apache-2.0), JSpecify (Apache-2.0).

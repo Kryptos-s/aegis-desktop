@@ -1,5 +1,9 @@
 # Security
 
+Aegis Desktop is an unofficial port of [Aegis Authenticator](https://github.com/beemdevelopment/Aegis).
+Problems in the vault format, crypto or importers are upstream's; problems in the desktop
+integration, the lock behaviour or the UI are this project's.
+
 ## Vault format
 
 Unchanged from Aegis for Android:
