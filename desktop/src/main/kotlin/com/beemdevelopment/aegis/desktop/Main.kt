@@ -57,7 +57,7 @@ fun main(args: Array<String>) {
                 exitApplication()
             },
             state = windowState,
-            title = Strings["app_name"],
+            title = Strings["app_name_desktop"],
             icon = icon,
             visible = !startMinimized,
         ) {

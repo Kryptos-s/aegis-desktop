@@ -51,8 +51,16 @@ fun AboutScreen(state: AppState) {
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Text(Strings["app_name"], style = MaterialTheme.typography.headlineMedium)
+            Text(Strings["app_name_desktop"], style = MaterialTheme.typography.headlineMedium)
             Text("${Strings["version"]} ${BuildInfo.VERSION}")
+
+            Card {
+                Text(
+                    Strings["unofficial_port"],
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
 
             Card {
                 Text(
