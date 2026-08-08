@@ -63,11 +63,16 @@ class AppState(
                 screen = Screen.Entries
             }
 
+            override fun onBackupResult(error: String?) {
+                if (error != null) {
+                    showStatus(com.beemdevelopment.aegis.desktop.i18n.Strings
+                        .format("backup_failed", error), isError = true)
+                }
+            }
+
             override fun onLocked(userInitiated: Boolean) {
                 entries = emptyList()
-                revealed = emptySet()
                 searchQuery = ""
-                busyMessage = null
                 screen = Screen.Unlock
             }
         })
