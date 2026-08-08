@@ -15,10 +15,17 @@ import com.beemdevelopment.aegis.desktop.platform.Platform
 import com.beemdevelopment.aegis.desktop.platform.SingleInstance
 import com.beemdevelopment.aegis.desktop.ui.App
 import com.beemdevelopment.aegis.desktop.ui.theme.AegisTheme
+import com.beemdevelopment.aegis.desktop.ui.theme.Sizes
 import java.util.Locale
 import kotlin.system.exitProcess
 
 private const val FLAG_TRAY = "--tray"
+
+/** Schemes the desktop entry registers Aegis as a handler for. */
+private val URI_SCHEMES = listOf("otpauth:", "otpauth-migration:")
+
+private fun Array<String>.findUri(): String? =
+    firstOrNull { arg -> URI_SCHEMES.any { arg.startsWith(it, ignoreCase = true) } }
 
 fun main(args: Array<String>) {
     Hardening.apply()
@@ -29,9 +36,12 @@ fun main(args: Array<String>) {
 
     // Two processes writing the same vault would race each other's saves, so a second launch
     // raises the existing window instead.
+    val launchUri = args.findUri()
+
     val instance = SingleInstance(paths.lockFile)
     if (!instance.acquire()) {
-        instance.signalExistingInstance()
+        // Hand the link to the running instance rather than opening a second vault.
+        instance.signalExistingInstance(launchUri)
         exitProcess(0)
     }
     Runtime.getRuntime().addShutdownHook(Thread { instance.release() })
@@ -40,6 +50,7 @@ fun main(args: Array<String>) {
     prefs.language?.let { Strings.setLocale(Locale.forLanguageTag(it)) }
 
     val state = AppState(paths, prefs, platform)
+    launchUri?.let { state.offerUri(it) }
     val startMinimized = args.contains(FLAG_TRAY)
 
     application {
@@ -62,14 +73,18 @@ fun main(args: Array<String>) {
             visible = !startMinimized,
         ) {
             LaunchedEffect(window) {
-                window.minimumSize = java.awt.Dimension(560, 620)
+                window.minimumSize = java.awt.Dimension(
+                    Sizes.minWindowWidth.value.toInt(),
+                    Sizes.minWindowHeight.value.toInt(),
+                )
             }
 
             LaunchedEffect(instance) {
-                instance.onActivationRequested {
+                instance.onActivationRequested { uri ->
                     windowState.isMinimized = false
                     window.toFront()
                     window.requestFocus()
+                    uri?.let { state.offerUri(it) }
                 }
             }
 

@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beemdevelopment.aegis.SortCategory
+import com.beemdevelopment.aegis.desktop.i18n.Strings
 import com.beemdevelopment.aegis.desktop.platform.Platform
 import com.beemdevelopment.aegis.desktop.vault.AuditLog
 import com.beemdevelopment.aegis.desktop.vault.VaultManager
@@ -51,6 +52,12 @@ class AppState(
 
     var searchQuery: String by mutableStateOf("")
 
+    /**
+     * An otpauth:// link the app was launched or activated with. It is held until the vault is
+     * open, then opens the entry editor pre-filled. Nothing is saved without the user confirming.
+     */
+    private var pendingUri: String? = null
+
     var groupFilter: Set<UUID> by mutableStateOf(prefs.groupFilter)
         private set
 
@@ -61,6 +68,7 @@ class AppState(
             override fun onUnlocked(repository: VaultRepository) {
                 refreshEntries()
                 screen = Screen.Entries
+                consumePendingUri()
             }
 
             override fun onBackupResult(error: String?) {
@@ -162,6 +170,28 @@ class AppState(
     fun applyGroupFilter(filter: Set<UUID>) {
         groupFilter = filter
         prefs.groupFilter = filter
+    }
+
+    /** Queues a link, opening the editor straight away if the vault is already unlocked. */
+    fun offerUri(uri: String) {
+        pendingUri = uri
+        if (vaultManager.isUnlocked) {
+            consumePendingUri()
+        }
+    }
+
+    private fun consumePendingUri() {
+        val uri = pendingUri ?: return
+        pendingUri = null
+
+        val info = try {
+            com.beemdevelopment.aegis.otp.GoogleAuthInfo.parseUri(uri.trim())
+        } catch (e: Exception) {
+            showStatus(e.message ?: Strings["error_occurred"], isError = true)
+            return
+        }
+
+        screen = Screen.EditEntry(null, VaultEntry(info))
     }
 
     fun showStatus(message: String, isError: Boolean = false) {

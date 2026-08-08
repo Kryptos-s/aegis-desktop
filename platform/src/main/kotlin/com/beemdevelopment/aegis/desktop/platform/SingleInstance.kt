@@ -57,7 +57,13 @@ class SingleInstance(private val lockFile: Path) {
     }
 
     /** Starts listening for activation requests from later launches. */
-    fun onActivationRequested(onActivate: () -> Unit) {
+    /**
+     * @param onActivate called with the link the other launch carried, or null. The payload only
+     *   pre-fills the entry editor for the user to confirm; it is never saved directly. The port
+     *   lives in the 0600 lock file and the socket is bound to loopback, so nothing belonging to
+     *   another user can reach it.
+     */
+    fun onActivationRequested(onActivate: (String?) -> Unit) {
         if (server != null) {
             return
         }
@@ -75,10 +81,11 @@ class SingleInstance(private val lockFile: Path) {
                 try {
                     socket.accept().use { client ->
                         client.soTimeout = 2000
-                        val line = client.getInputStream().bufferedReader().readLine()
-                        if (line == ACTIVATE_TOKEN) {
-                            onActivate()
+                        val line = client.getInputStream().bufferedReader().readLine() ?: return@use
+                        if (!line.startsWith(ACTIVATE_TOKEN)) {
+                            return@use
                         }
+                        onActivate(line.removePrefix(ACTIVATE_TOKEN).trim().takeIf { it.isNotEmpty() })
                     }
                 } catch (e: IOException) {
                     if (socket.isClosed) {
@@ -91,11 +98,14 @@ class SingleInstance(private val lockFile: Path) {
     }
 
     /** Asks the running instance to show its window. Best effort. */
-    fun signalExistingInstance() {
+    fun signalExistingInstance(payload: String? = null) {
         val port = readPort() ?: return
+        // A newline would be read as a second message, so a payload containing one is dropped.
+        val safe = payload?.takeIf { p -> p.none { it == '\n' || it == '\r' } }
+        val message = if (safe != null) "$ACTIVATE_TOKEN $safe\n" else "$ACTIVATE_TOKEN\n"
         try {
             Socket(InetAddress.getLoopbackAddress(), port).use { socket ->
-                socket.getOutputStream().write((ACTIVATE_TOKEN + "\n").toByteArray())
+                socket.getOutputStream().write(message.toByteArray())
                 socket.getOutputStream().flush()
             }
         } catch (e: IOException) {
