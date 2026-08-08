@@ -694,6 +694,10 @@
     <string name="qr_code_warning">Anyone who photographs this code gains access to the account.</string>
     <string name="toggle_favorite">Toggle favourite</string>
     <string name="refresh">Refresh</string>
+    <string name="start_at_login">Start when you log in</string>
+    <string name="start_at_login_summary">Starts minimized and locked. There is nowhere safe to keep a password, so it cannot start unlocked.</string>
+    <string name="autostart_unavailable">Only available when Aegis is installed as a package</string>
+    <string name="last_backup_failed">The last backup failed: %1$s</string>
     <string name="app_name_desktop">Aegis Desktop</string>
     <string name="unofficial_port">An unofficial desktop port of Aegis Authenticator. Not affiliated with or endorsed by Beem Development.</string>
     <string name="password_changed">Master password changed</string>

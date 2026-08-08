@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -84,7 +84,7 @@ fun PreferencesScreen(state: AppState) {
                 title = { Text(Strings["preferences"]) },
                 navigationIcon = {
                     IconButton(onClick = { state.back() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = Strings["back"])
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["back"])
                     }
                 },
             )
@@ -190,6 +190,24 @@ fun PreferencesScreen(state: AppState) {
                 onChange = { prefs.lockOnMinimize = it; changed() },
             )
 
+            SwitchRow(
+                title = Strings["start_at_login"],
+                summary = if (platform.autostart.isAvailable) {
+                    Strings["start_at_login_summary"]
+                } else {
+                    Strings["autostart_unavailable"]
+                },
+                checked = platform.autostart.isAvailable && platform.autostart.isEnabled(),
+                enabled = platform.autostart.isAvailable,
+                onChange = {
+                    runCatching { platform.autostart.setEnabled(it) }
+                        .onFailure { e ->
+                            state.showStatus(e.message ?: Strings["error_occurred"], isError = true)
+                        }
+                    changed()
+                },
+            )
+
             SectionHeader(Strings["section_clipboard"])
 
             ChoiceRow(
@@ -291,6 +309,15 @@ fun PreferencesScreen(state: AppState) {
                     changed()
                 },
             )
+
+            state.vaultManager.lastBackupError?.let { error ->
+                Text(
+                    Strings.format("last_backup_failed", error),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
 
             SettingRow(
                 title = Strings["backup_now"],
@@ -453,7 +480,7 @@ private fun export(state: AppState, scope: kotlinx.coroutines.CoroutineScope, ki
 private fun SectionHeader(title: String) {
     Spacer(Modifier.height(16.dp))
     Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-    Divider(Modifier.padding(vertical = 8.dp))
+    HorizontalDivider(Modifier.padding(vertical = 8.dp))
 }
 
 @Composable
