@@ -4,14 +4,14 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
 
-  <name>Aegis Authenticator</name>
+  <name>Aegis Desktop</name>
   <summary>Generate two-factor authentication codes</summary>
 
   <description>
     <p>
-      Aegis is a free, secure and open source authenticator app. It generates the one-time codes
-      used for two-factor authentication, and stores them in an encrypted vault on your own
-      machine.
+      An unofficial desktop port of Aegis Authenticator, not affiliated with or endorsed by Beem
+      Development. It generates the one-time codes used for two-factor authentication and stores
+      them in an encrypted vault on your own machine.
     </p>
     <p>
       The vault format is the same one Aegis for Android uses, so a single vault file can be kept
@@ -24,8 +24,8 @@
   </description>
 
   <launchable type="desktop-id">com.beemdevelopment.aegis.desktop</launchable>
-  <url type="homepage">https://github.com/beemdevelopment/Aegis</url>
-  <url type="bugtracker">https://github.com/beemdevelopment/Aegis/issues</url>
+  <url type="homepage">https://github.com/Kryptos-s/aegis-desktop</url>
+  <url type="bugtracker">https://github.com/Kryptos-s/aegis-desktop/issues</url>
 
   <content_rating type="oars-1.1"/>
 

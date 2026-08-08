@@ -50,8 +50,8 @@ compose.desktop {
 
             packageName = "aegis"
             packageVersion = appVersion
-            description = "A free, secure and open source authenticator app"
-            copyright = "Copyright (C) Beem Development and contributors"
+            description = "Unofficial desktop port of Aegis Authenticator"
+            copyright = "Copyright (C) Beem Development and contributors. GPL-3.0."
             vendor = "Beem Development"
             licenseFile = rootProject.file("LICENSE")
 

@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Aegis Authenticator
+Name=Aegis Desktop
 GenericName=Two-factor authentication
-Comment=Generate two-factor authentication codes
+Comment=Generate two-factor authentication codes (unofficial Aegis port)
 Exec=aegis %f
 Icon=com.beemdevelopment.aegis
 Terminal=false
