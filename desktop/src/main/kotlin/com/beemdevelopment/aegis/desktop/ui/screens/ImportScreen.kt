@@ -3,26 +3,18 @@ package com.beemdevelopment.aegis.desktop.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,8 +27,10 @@ import androidx.compose.ui.unit.dp
 import com.beemdevelopment.aegis.desktop.AppState
 import com.beemdevelopment.aegis.desktop.i18n.Strings
 import com.beemdevelopment.aegis.desktop.io.FileChoosers
+import com.beemdevelopment.aegis.desktop.ui.components.DetailPage
 import com.beemdevelopment.aegis.desktop.ui.components.PasswordField
 import com.beemdevelopment.aegis.desktop.ui.components.PasswordState
+import com.beemdevelopment.aegis.desktop.ui.theme.Spacing
 import com.beemdevelopment.aegis.importers.DatabaseImporter
 import com.beemdevelopment.aegis.vault.VaultEntry
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +41,6 @@ import java.nio.file.Path
 import java.util.Arrays
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportScreen(state: AppState) {
     val scope = rememberCoroutineScope()
@@ -151,102 +144,92 @@ fun ImportScreen(state: AppState) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(Strings["import_label"]) },
-                navigationIcon = {
-                    IconButton(onClick = { state.back() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["back"])
-                    }
-                },
-            )
-        },
-        modifier = Modifier.fillMaxSize(),
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(24.dp)) {
-            if (busy) {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
-            }
+    DetailPage(
+        title = Strings["import_label"],
+        onBack = { state.back() },
+        scrollable = false,
+    ) {
+        if (busy) {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+        }
 
-            error?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
-            }
+        error?.let {
+            Text(it, color = MaterialTheme.colorScheme.error)
+        }
 
-            if (found.isEmpty()) {
-                Text(Strings["import_from"], style = MaterialTheme.typography.titleMedium)
-                LazyColumn(Modifier.weight(1f)) {
-                    items(definitions) { definition ->
-                        Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(definition.name, style = MaterialTheme.typography.titleSmall)
-                                    Text(
-                                        Strings[definition.help],
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                OutlinedButton(
-                                    enabled = !busy,
-                                    onClick = {
-                                        scope.launch {
-                                            val path = FileChoosers.openFile(state, Strings["choose_file"])
-                                            if (path != null) {
-                                                readFile(definition, path)
-                                            }
-                                        }
-                                    },
-                                ) {
-                                    Text(Strings["choose_file"])
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                Text(Strings.format("import_found", found.size), style = MaterialTheme.typography.titleMedium)
-
-                if (importErrors.isNotEmpty()) {
-                    Text(
-                        importErrors.joinToString("\n"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-
-                LazyColumn(Modifier.weight(1f)) {
-                    items(found, key = { it.uuid }) { entry ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        ) {
-                            Checkbox(
-                                checked = entry.uuid in selected,
-                                onCheckedChange = { checked ->
-                                    selected = if (checked) selected + entry.uuid else selected - entry.uuid
-                                },
-                            )
+        if (found.isEmpty()) {
+            Text(Strings["import_from"], style = MaterialTheme.typography.titleMedium)
+            LazyColumn(Modifier.weight(1f)) {
+                items(definitions) { definition ->
+                    Column(Modifier.fillMaxWidth().padding(vertical = Spacing.small)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("${entry.issuer} ${entry.name}".trim())
-                                if (entry.uuid in duplicates) {
-                                    Text(
-                                        Strings["import_duplicate"],
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.error,
-                                    )
-                                }
+                                Text(definition.name, style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    Strings[definition.help],
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            OutlinedButton(
+                                enabled = !busy,
+                                onClick = {
+                                    scope.launch {
+                                        val path = FileChoosers.openFile(state, Strings["choose_file"])
+                                        if (path != null) {
+                                            readFile(definition, path)
+                                        }
+                                    }
+                                },
+                            ) {
+                                Text(Strings["choose_file"])
                             }
                         }
                     }
                 }
+            }
+        } else {
+            Text(Strings.format("import_found", found.size), style = MaterialTheme.typography.titleMedium)
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = ::commit, enabled = !busy && selected.isNotEmpty()) {
-                        Text(Strings["import_selected"])
+            if (importErrors.isNotEmpty()) {
+                Text(
+                    importErrors.joinToString("\n"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+
+            LazyColumn(Modifier.weight(1f)) {
+                items(found, key = { it.uuid }) { entry ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.tight),
+                    ) {
+                        Checkbox(
+                            checked = entry.uuid in selected,
+                            onCheckedChange = { checked ->
+                                selected = if (checked) selected + entry.uuid else selected - entry.uuid
+                            },
+                        )
+                        Column(Modifier.weight(1f)) {
+                            Text("${entry.issuer} ${entry.name}".trim())
+                            if (entry.uuid in duplicates) {
+                                Text(
+                                    Strings["import_duplicate"],
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                        }
                     }
-                    OutlinedButton(onClick = { state.back() }) { Text(Strings["cancel"]) }
                 }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                Button(onClick = ::commit, enabled = !busy && selected.isNotEmpty()) {
+                    Text(Strings["import_selected"])
+                }
+                OutlinedButton(onClick = { state.back() }) { Text(Strings["cancel"]) }
             }
         }
     }

@@ -9,19 +9,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,16 +26,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.beemdevelopment.aegis.desktop.AppState
 import com.beemdevelopment.aegis.desktop.i18n.Strings
 import com.beemdevelopment.aegis.desktop.ui.components.ConfirmDialog
+import com.beemdevelopment.aegis.desktop.ui.components.DetailPage
+import com.beemdevelopment.aegis.desktop.ui.theme.Spacing
 import com.beemdevelopment.aegis.vault.VaultGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupsScreen(state: AppState) {
     val scope = rememberCoroutineScope()
@@ -59,37 +55,29 @@ fun GroupsScreen(state: AppState) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(Strings["groups"]) },
-                navigationIcon = {
-                    IconButton(onClick = { state.back() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["back"])
-                    }
-                },
-                actions = {
-                    TextButton(onClick = { adding = true }) { Text(Strings["add"]) }
-                },
-            )
+    DetailPage(
+        title = Strings["groups"],
+        onBack = { state.back() },
+        scrollable = false,
+        actions = {
+            TextButton(onClick = { adding = true }) { Text(Strings["add"]) }
         },
-        modifier = Modifier.fillMaxSize(),
-    ) { padding ->
+    ) {
         if (groups.isEmpty()) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(Strings["no_groups_found"], style = MaterialTheme.typography.titleMedium)
             }
         } else {
-            LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+            LazyColumn(Modifier.fillMaxSize()) {
                 items(groups, key = { it.uuid }) { group ->
                     val count = state.entries.count { group.uuid in it.groups }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.small),
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(group.name, style = MaterialTheme.typography.titleMedium)

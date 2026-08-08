@@ -34,6 +34,7 @@ import com.beemdevelopment.aegis.desktop.ui.OtpState
 import com.beemdevelopment.aegis.desktop.ui.theme.CodeTextStyle
 import com.beemdevelopment.aegis.desktop.ui.theme.CompactCodeTextStyle
 import com.beemdevelopment.aegis.desktop.ui.theme.LocalAegisColors
+import com.beemdevelopment.aegis.desktop.ui.theme.Sizes
 import com.beemdevelopment.aegis.desktop.ui.theme.SmallCodeTextStyle
 import com.beemdevelopment.aegis.otp.HotpInfo
 import com.beemdevelopment.aegis.vault.VaultEntry
@@ -85,7 +86,7 @@ fun EntryRow(
             .padding(horizontal = 12.dp, vertical = verticalPadding),
     ) {
         if (showIcon && viewMode != ViewMode.SMALL) {
-            EntryIcon(entry, size = if (viewMode == ViewMode.NORMAL) 40.dp else 32.dp)
+            EntryIcon(entry, size = if (viewMode == ViewMode.NORMAL) Sizes.entryIcon else Sizes.entryIconCompact)
             Spacer(Modifier.width(12.dp))
         }
 
@@ -184,7 +185,7 @@ fun EntryRow(
                     strokeWidth = 2.5.dp,
                     color = codeColor(otp, colors.expiring, MaterialTheme.colorScheme.primary),
                     trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(Sizes.countdown),
                 )
             }
         }

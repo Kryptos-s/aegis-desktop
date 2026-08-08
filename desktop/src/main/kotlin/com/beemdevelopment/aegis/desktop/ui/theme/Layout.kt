@@ -18,13 +18,10 @@ object Sizes {
     /** Wider cap for pages that are lists rather than prose, like settings. */
     val wideContentMaxWidth = 720.dp
 
-    /** Below this the two-column rows in settings collapse. */
-    val compactWidthThreshold = 560.dp
-
     val entryIcon = 40.dp
     val entryIconCompact = 32.dp
-    val countdown = 30.dp
+    val countdown = 22.dp
 
-    val minWindowWidth = 480.dp
-    val minWindowHeight = 520.dp
+    val minWindowWidth = 560.dp
+    val minWindowHeight = 620.dp
 }

@@ -2,54 +2,29 @@ package com.beemdevelopment.aegis.desktop.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
 import com.beemdevelopment.aegis.desktop.AppState
 import com.beemdevelopment.aegis.desktop.BuildInfo
 import com.beemdevelopment.aegis.desktop.i18n.Strings
+import com.beemdevelopment.aegis.desktop.ui.components.DetailPage
+import com.beemdevelopment.aegis.desktop.ui.theme.Spacing
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(state: AppState) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(Strings["about"]) },
-                navigationIcon = {
-                    IconButton(onClick = { state.back() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["back"])
-                    }
-                },
-            )
-        },
-        modifier = Modifier.fillMaxSize(),
-    ) { padding ->
+    DetailPage(title = Strings["about"], onBack = { state.back() }) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(Strings["app_name_desktop"], style = MaterialTheme.typography.headlineMedium)
             Text("${Strings["version"]} ${BuildInfo.VERSION}")
@@ -58,7 +33,7 @@ fun AboutScreen(state: AppState) {
                 Text(
                     Strings["unofficial_port"],
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(Spacing.medium),
                 )
             }
 
@@ -66,7 +41,7 @@ fun AboutScreen(state: AppState) {
                 Text(
                     Strings["no_network_statement"],
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(Spacing.medium),
                 )
             }
 

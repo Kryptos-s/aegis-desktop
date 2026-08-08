@@ -6,29 +6,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,8 +41,10 @@ import com.beemdevelopment.aegis.desktop.ViewMode
 import com.beemdevelopment.aegis.desktop.i18n.Strings
 import com.beemdevelopment.aegis.desktop.io.FileChoosers
 import com.beemdevelopment.aegis.desktop.ui.components.ConfirmDialog
+import com.beemdevelopment.aegis.desktop.ui.components.DetailPage
 import com.beemdevelopment.aegis.desktop.ui.components.PasswordField
 import com.beemdevelopment.aegis.desktop.ui.components.PasswordState
+import com.beemdevelopment.aegis.desktop.ui.theme.Spacing
 import com.beemdevelopment.aegis.util.TempFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,7 +54,6 @@ import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreferencesScreen(state: AppState) {
     val scope = rememberCoroutineScope()
@@ -78,296 +71,276 @@ fun PreferencesScreen(state: AppState) {
     var confirmPlainExport by remember { mutableStateOf<ExportKind?>(null) }
     var showAuditLog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(Strings["preferences"]) },
-                navigationIcon = {
-                    IconButton(onClick = { state.back() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["back"])
-                    }
-                },
-            )
-        },
-        modifier = Modifier.fillMaxSize(),
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            SectionHeader(Strings["section_security"])
+    DetailPage(title = Strings["preferences"], onBack = { state.back() }) {
+        SectionHeader(Strings["section_security"])
 
+        SettingRow(
+            title = Strings["change_password"],
+            onClick = { changingPassword = true },
+        )
+
+        if (state.vaultManager.isUnlocked && state.vaultManager.vault.isEncryptionEnabled) {
             SettingRow(
-                title = Strings["change_password"],
-                onClick = { changingPassword = true },
-            )
-
-            if (state.vaultManager.isUnlocked && state.vaultManager.vault.isEncryptionEnabled) {
-                SettingRow(
-                    title = Strings["export_encrypted"],
-                    summary = Strings["no_encryption_summary"],
-                    trailing = {
-                        Switch(
-                            checked = true,
-                            onCheckedChange = { confirmDisableEncryption = true },
-                        )
-                    },
-                )
-            }
-
-            SwitchRow(
-                title = Strings["keychain_unlock"],
-                summary = if (platform.secretStore.isAvailable) {
-                    Strings.format("keychain_unlock_summary", platform.secretStore.name)
-                } else {
-                    Strings["keychain_unavailable"]
+                title = Strings["export_encrypted"],
+                summary = Strings["no_encryption_summary"],
+                trailing = {
+                    Switch(
+                        checked = true,
+                        onCheckedChange = { confirmDisableEncryption = true },
+                    )
                 },
-                checked = prefs.keychainUnlockEnabled,
-                enabled = platform.secretStore.isAvailable &&
-                    state.vaultManager.isUnlocked &&
-                    state.vaultManager.vault.isEncryptionEnabled,
-                onChange = { enabled ->
-                    scope.launch {
-                        try {
-                            withContext(Dispatchers.IO) {
-                                if (enabled) {
-                                    state.vaultManager.enableKeychainUnlock()
-                                } else {
-                                    state.vaultManager.disableKeychainUnlock()
-                                }
+            )
+        }
+
+        SwitchRow(
+            title = Strings["keychain_unlock"],
+            summary = if (platform.secretStore.isAvailable) {
+                Strings.format("keychain_unlock_summary", platform.secretStore.name)
+            } else {
+                Strings["keychain_unavailable"]
+            },
+            checked = prefs.keychainUnlockEnabled,
+            enabled = platform.secretStore.isAvailable &&
+                state.vaultManager.isUnlocked &&
+                state.vaultManager.vault.isEncryptionEnabled,
+            onChange = { enabled ->
+                scope.launch {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            if (enabled) {
+                                state.vaultManager.enableKeychainUnlock()
+                            } else {
+                                state.vaultManager.disableKeychainUnlock()
                             }
-                        } catch (e: Exception) {
-                            state.showStatus(e.message ?: Strings["error_occurred"], isError = true)
                         }
+                    } catch (e: Exception) {
+                        state.showStatus(e.message ?: Strings["error_occurred"], isError = true)
+                    }
+                    changed()
+                }
+            },
+        )
+
+        SwitchRow(
+            title = Strings["require_user_presence"],
+            summary = if (platform.userPresence.isAvailable) {
+                Strings["require_user_presence_summary"]
+            } else {
+                Strings["user_presence_unavailable"]
+            },
+            checked = prefs.keychainRequiresPresence,
+            enabled = platform.userPresence.isAvailable,
+            onChange = { prefs.keychainRequiresPresence = it; changed() },
+        )
+
+        SectionHeader(Strings["section_locking"])
+
+        ChoiceRow(
+            title = Strings["idle_lock_timeout"],
+            current = durationLabel(prefs.idleLockTimeout),
+            options = IDLE_TIMEOUTS.map { durationLabel(it) },
+            onSelect = { index -> prefs.idleLockTimeout = IDLE_TIMEOUTS[index]; changed() },
+        )
+
+        SwitchRow(
+            title = Strings["lock_on_session_lock"],
+            summary = if (platform.sessionMonitor.isAvailable) null else Strings["session_monitor_unavailable"],
+            checked = prefs.lockOnSessionLock,
+            enabled = platform.sessionMonitor.isAvailable,
+            onChange = { prefs.lockOnSessionLock = it; changed() },
+        )
+
+        SwitchRow(
+            title = Strings["lock_on_suspend"],
+            summary = if (platform.sessionMonitor.isAvailable) null else Strings["session_monitor_unavailable"],
+            checked = prefs.lockOnSuspend,
+            enabled = platform.sessionMonitor.isAvailable,
+            onChange = { prefs.lockOnSuspend = it; changed() },
+        )
+
+        SwitchRow(
+            title = Strings["lock_on_minimize"],
+            checked = prefs.lockOnMinimize,
+            onChange = { prefs.lockOnMinimize = it; changed() },
+        )
+
+        SwitchRow(
+            title = Strings["start_at_login"],
+            summary = if (platform.autostart.isAvailable) {
+                Strings["start_at_login_summary"]
+            } else {
+                Strings["autostart_unavailable"]
+            },
+            checked = platform.autostart.isAvailable && platform.autostart.isEnabled(),
+            enabled = platform.autostart.isAvailable,
+            onChange = {
+                runCatching { platform.autostart.setEnabled(it) }
+                    .onFailure { e ->
+                        state.showStatus(e.message ?: Strings["error_occurred"], isError = true)
+                    }
+                changed()
+            },
+        )
+
+        SectionHeader(Strings["section_clipboard"])
+
+        ChoiceRow(
+            title = Strings["pref_copy_behavior_title"],
+            current = copyBehaviorLabel(prefs.copyBehavior),
+            options = CopyBehavior.entries.map { copyBehaviorLabel(it) },
+            onSelect = { index -> prefs.copyBehavior = CopyBehavior.entries[index]; changed() },
+        )
+
+        ChoiceRow(
+            title = Strings["clipboard_clear_delay"],
+            current = durationLabel(prefs.clipboardClearDelay),
+            options = CLIPBOARD_DELAYS.map { durationLabel(it) },
+            onSelect = { index -> prefs.clipboardClearDelay = CLIPBOARD_DELAYS[index]; changed() },
+        )
+
+        Text(
+            if (platform.clipboard.copySensitiveIsPrivate) {
+                Strings["clipboard_private_yes"]
+            } else {
+                Strings["clipboard_private_no"]
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = Spacing.small),
+        )
+
+        SectionHeader(Strings["section_appearance"])
+
+        ChoiceRow(
+            title = Strings["theme"],
+            current = themeLabel(prefs.theme),
+            options = Theme.entries.map { themeLabel(it) },
+            onSelect = { index -> prefs.theme = Theme.entries[index]; changed() },
+        )
+
+        ChoiceRow(
+            title = Strings["view_mode"],
+            current = viewModeLabelFor(prefs.viewMode),
+            options = ViewMode.entries.map { viewModeLabelFor(it) },
+            onSelect = { index -> prefs.viewMode = ViewMode.entries[index]; changed() },
+        )
+
+        ChoiceRow(
+            title = Strings["pref_account_name_position_title"],
+            current = prefs.accountNamePosition.name,
+            options = AccountNamePosition.entries.map { it.name },
+            onSelect = { index ->
+                prefs.accountNamePosition = AccountNamePosition.entries[index]
+                changed()
+            },
+        )
+
+        SwitchRow(
+            title = Strings["pref_show_icons_title"],
+            checked = prefs.showIcons,
+            onChange = { prefs.showIcons = it; changed() },
+        )
+
+        SwitchRow(
+            title = Strings["pref_show_next_code_title"],
+            checked = prefs.showNextCode,
+            onChange = { prefs.showNextCode = it; changed() },
+        )
+
+        SwitchRow(
+            title = Strings["pref_tap_to_reveal_title"],
+            checked = prefs.tapToReveal,
+            onChange = { prefs.tapToReveal = it; changed() },
+        )
+
+        SectionHeader(Strings["section_backups"])
+
+        SwitchRow(
+            title = Strings["pref_backups_title"],
+            checked = prefs.backupsEnabled,
+            onChange = { prefs.backupsEnabled = it; changed() },
+        )
+
+        SettingRow(
+            title = Strings["backup_location"],
+            summary = prefs.backupsLocation?.toString(),
+            onClick = {
+                scope.launch {
+                    FileChoosers.chooseDirectory(state, Strings["choose_folder"])?.let {
+                        prefs.backupsLocation = it
                         changed()
                     }
-                },
-            )
+                }
+            },
+        )
 
-            SwitchRow(
-                title = Strings["require_user_presence"],
-                summary = if (platform.userPresence.isAvailable) {
-                    Strings["require_user_presence_summary"]
-                } else {
-                    Strings["user_presence_unavailable"]
-                },
-                checked = prefs.keychainRequiresPresence,
-                enabled = platform.userPresence.isAvailable,
-                onChange = { prefs.keychainRequiresPresence = it; changed() },
-            )
+        ChoiceRow(
+            title = Strings["pref_backups_versions_title"],
+            current = prefs.backupVersioningStrategy.name,
+            options = BackupsVersioningStrategy.entries.map { it.name },
+            onSelect = { index ->
+                prefs.backupVersioningStrategy = BackupsVersioningStrategy.entries[index]
+                changed()
+            },
+        )
 
-            SectionHeader(Strings["section_locking"])
-
-            ChoiceRow(
-                title = Strings["idle_lock_timeout"],
-                current = durationLabel(prefs.idleLockTimeout),
-                options = IDLE_TIMEOUTS.map { durationLabel(it) },
-                onSelect = { index -> prefs.idleLockTimeout = IDLE_TIMEOUTS[index]; changed() },
-            )
-
-            SwitchRow(
-                title = Strings["lock_on_session_lock"],
-                summary = if (platform.sessionMonitor.isAvailable) null else Strings["session_monitor_unavailable"],
-                checked = prefs.lockOnSessionLock,
-                enabled = platform.sessionMonitor.isAvailable,
-                onChange = { prefs.lockOnSessionLock = it; changed() },
-            )
-
-            SwitchRow(
-                title = Strings["lock_on_suspend"],
-                summary = if (platform.sessionMonitor.isAvailable) null else Strings["session_monitor_unavailable"],
-                checked = prefs.lockOnSuspend,
-                enabled = platform.sessionMonitor.isAvailable,
-                onChange = { prefs.lockOnSuspend = it; changed() },
-            )
-
-            SwitchRow(
-                title = Strings["lock_on_minimize"],
-                checked = prefs.lockOnMinimize,
-                onChange = { prefs.lockOnMinimize = it; changed() },
-            )
-
-            SwitchRow(
-                title = Strings["start_at_login"],
-                summary = if (platform.autostart.isAvailable) {
-                    Strings["start_at_login_summary"]
-                } else {
-                    Strings["autostart_unavailable"]
-                },
-                checked = platform.autostart.isAvailable && platform.autostart.isEnabled(),
-                enabled = platform.autostart.isAvailable,
-                onChange = {
-                    runCatching { platform.autostart.setEnabled(it) }
-                        .onFailure { e ->
-                            state.showStatus(e.message ?: Strings["error_occurred"], isError = true)
-                        }
-                    changed()
-                },
-            )
-
-            SectionHeader(Strings["section_clipboard"])
-
-            ChoiceRow(
-                title = Strings["pref_copy_behavior_title"],
-                current = copyBehaviorLabel(prefs.copyBehavior),
-                options = CopyBehavior.entries.map { copyBehaviorLabel(it) },
-                onSelect = { index -> prefs.copyBehavior = CopyBehavior.entries[index]; changed() },
-            )
-
-            ChoiceRow(
-                title = Strings["clipboard_clear_delay"],
-                current = durationLabel(prefs.clipboardClearDelay),
-                options = CLIPBOARD_DELAYS.map { durationLabel(it) },
-                onSelect = { index -> prefs.clipboardClearDelay = CLIPBOARD_DELAYS[index]; changed() },
-            )
-
+        state.vaultManager.lastBackupError?.let { error ->
             Text(
-                if (platform.clipboard.copySensitiveIsPrivate) {
-                    Strings["clipboard_private_yes"]
-                } else {
-                    Strings["clipboard_private_no"]
-                },
+                Strings.format("last_backup_failed", error),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp),
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = Spacing.small),
             )
-
-            SectionHeader(Strings["section_appearance"])
-
-            ChoiceRow(
-                title = Strings["theme"],
-                current = themeLabel(prefs.theme),
-                options = Theme.entries.map { themeLabel(it) },
-                onSelect = { index -> prefs.theme = Theme.entries[index]; changed() },
-            )
-
-            ChoiceRow(
-                title = Strings["view_mode"],
-                current = viewModeLabelFor(prefs.viewMode),
-                options = ViewMode.entries.map { viewModeLabelFor(it) },
-                onSelect = { index -> prefs.viewMode = ViewMode.entries[index]; changed() },
-            )
-
-            ChoiceRow(
-                title = Strings["pref_account_name_position_title"],
-                current = prefs.accountNamePosition.name,
-                options = AccountNamePosition.entries.map { it.name },
-                onSelect = { index ->
-                    prefs.accountNamePosition = AccountNamePosition.entries[index]
-                    changed()
-                },
-            )
-
-            SwitchRow(
-                title = Strings["pref_show_icons_title"],
-                checked = prefs.showIcons,
-                onChange = { prefs.showIcons = it; changed() },
-            )
-
-            SwitchRow(
-                title = Strings["pref_show_next_code_title"],
-                checked = prefs.showNextCode,
-                onChange = { prefs.showNextCode = it; changed() },
-            )
-
-            SwitchRow(
-                title = Strings["pref_tap_to_reveal_title"],
-                checked = prefs.tapToReveal,
-                onChange = { prefs.tapToReveal = it; changed() },
-            )
-
-            SectionHeader(Strings["section_backups"])
-
-            SwitchRow(
-                title = Strings["pref_backups_title"],
-                checked = prefs.backupsEnabled,
-                onChange = { prefs.backupsEnabled = it; changed() },
-            )
-
-            SettingRow(
-                title = Strings["backup_location"],
-                summary = prefs.backupsLocation?.toString(),
-                onClick = {
-                    scope.launch {
-                        FileChoosers.chooseDirectory(state, Strings["choose_folder"])?.let {
-                            prefs.backupsLocation = it
-                            changed()
-                        }
-                    }
-                },
-            )
-
-            ChoiceRow(
-                title = Strings["pref_backups_versions_title"],
-                current = prefs.backupVersioningStrategy.name,
-                options = BackupsVersioningStrategy.entries.map { it.name },
-                onSelect = { index ->
-                    prefs.backupVersioningStrategy = BackupsVersioningStrategy.entries[index]
-                    changed()
-                },
-            )
-
-            state.vaultManager.lastBackupError?.let { error ->
-                Text(
-                    Strings.format("last_backup_failed", error),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-            }
-
-            SettingRow(
-                title = Strings["backup_now"],
-                onClick = {
-                    scope.launch {
-                        try {
-                            withContext(Dispatchers.IO) { state.vaultManager.saveAndBackup() }
-                            state.showStatus(Strings["backup_succeeded"])
-                        } catch (e: Exception) {
-                            state.showStatus(
-                                Strings.format("backup_failed", e.message ?: ""),
-                                isError = true,
-                            )
-                        }
-                    }
-                },
-            )
-
-            SectionHeader(Strings["section_import_export"])
-
-            SettingRow(title = Strings["import_label"], onClick = { state.navigate(Screen.Import) })
-
-            SettingRow(
-                title = Strings["export_vault_encrypted"],
-                onClick = { export(state, scope, ExportKind.ENCRYPTED) },
-            )
-            SettingRow(
-                title = Strings["export_plain"],
-                onClick = { confirmPlainExport = ExportKind.PLAIN },
-            )
-            SettingRow(
-                title = Strings["export_uris"],
-                onClick = { confirmPlainExport = ExportKind.URIS },
-            )
-            SettingRow(
-                title = Strings["export_html"],
-                onClick = { confirmPlainExport = ExportKind.HTML },
-            )
-
-            SectionHeader(Strings["section_vault"])
-
-            SettingRow(title = Strings["audit_log"], onClick = { showAuditLog = true })
-            SettingRow(
-                title = Strings["wipe_vault"],
-                destructive = true,
-                onClick = { confirmWipe = true },
-            )
-
-            Spacer(Modifier.height(32.dp))
         }
+
+        SettingRow(
+            title = Strings["backup_now"],
+            onClick = {
+                scope.launch {
+                    try {
+                        withContext(Dispatchers.IO) { state.vaultManager.saveAndBackup() }
+                        state.showStatus(Strings["backup_succeeded"])
+                    } catch (e: Exception) {
+                        state.showStatus(
+                            Strings.format("backup_failed", e.message ?: ""),
+                            isError = true,
+                        )
+                    }
+                }
+            },
+        )
+
+        SectionHeader(Strings["section_import_export"])
+
+        SettingRow(title = Strings["import_label"], onClick = { state.navigate(Screen.Import) })
+
+        SettingRow(
+            title = Strings["export_vault_encrypted"],
+            onClick = { export(state, scope, ExportKind.ENCRYPTED) },
+        )
+        SettingRow(
+            title = Strings["export_plain"],
+            onClick = { confirmPlainExport = ExportKind.PLAIN },
+        )
+        SettingRow(
+            title = Strings["export_uris"],
+            onClick = { confirmPlainExport = ExportKind.URIS },
+        )
+        SettingRow(
+            title = Strings["export_html"],
+            onClick = { confirmPlainExport = ExportKind.HTML },
+        )
+
+        SectionHeader(Strings["section_vault"])
+
+        SettingRow(title = Strings["audit_log"], onClick = { showAuditLog = true })
+        SettingRow(
+            title = Strings["wipe_vault"],
+            destructive = true,
+            onClick = { confirmWipe = true },
+        )
+
+        Spacer(Modifier.height(Spacing.section))
     }
 
     if (changingPassword) {
@@ -478,9 +451,9 @@ private fun export(state: AppState, scope: kotlinx.coroutines.CoroutineScope, ki
 
 @Composable
 private fun SectionHeader(title: String) {
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(Spacing.medium))
     Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+    HorizontalDivider(Modifier.padding(vertical = Spacing.small))
 }
 
 @Composable
@@ -652,7 +625,7 @@ private fun AuditLogDialog(state: AppState, onDismiss: () -> Unit) {
                 Text(Strings["audit_log_empty"])
             } else {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.tight),
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                 ) {
                     events.forEach { event ->

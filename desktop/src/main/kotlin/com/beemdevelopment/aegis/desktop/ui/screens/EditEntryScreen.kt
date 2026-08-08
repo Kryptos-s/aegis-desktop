@@ -5,30 +5,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,7 +34,10 @@ import androidx.compose.ui.unit.dp
 import com.beemdevelopment.aegis.desktop.AppState
 import com.beemdevelopment.aegis.desktop.i18n.Strings
 import com.beemdevelopment.aegis.desktop.ui.components.ConfirmDialog
+import com.beemdevelopment.aegis.desktop.ui.components.DetailPage
 import com.beemdevelopment.aegis.desktop.ui.theme.CodeTextStyle
+import com.beemdevelopment.aegis.desktop.ui.theme.Sizes
+import com.beemdevelopment.aegis.desktop.ui.theme.Spacing
 import com.beemdevelopment.aegis.encoding.Base32
 import com.beemdevelopment.aegis.encoding.Hex
 import com.beemdevelopment.aegis.otp.HotpInfo
@@ -65,7 +60,6 @@ private enum class OtpType(val label: String) {
     MOTP("MOTP"),
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditEntryScreen(state: AppState, entryUuid: UUID?, prefill: VaultEntry?) {
     val scope = rememberCoroutineScope()
@@ -209,38 +203,26 @@ fun EditEntryScreen(state: AppState, entryUuid: UUID?, prefill: VaultEntry?) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (existing == null) Strings["new_entry"] else Strings["edit"]) },
-                navigationIcon = {
-                    IconButton(onClick = { state.back() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["cancel"])
-                    }
-                },
-                actions = {
-                    if (existing != null) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = Strings["delete"],
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    }
-                    TextButton(onClick = ::save) { Text(Strings["save"]) }
-                },
-            )
+    DetailPage(
+        title = if (existing == null) Strings["new_entry"] else Strings["edit"],
+        onBack = { state.back() },
+        maxWidth = Sizes.contentMaxWidth,
+        actions = {
+            if (existing != null) {
+                IconButton(onClick = { confirmDelete = true }) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = Strings["delete"],
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+            TextButton(onClick = ::save) { Text(Strings["save"]) }
         },
-        modifier = Modifier.fillMaxSize(),
-    ) { padding ->
+    ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
@@ -279,7 +261,7 @@ fun EditEntryScreen(state: AppState, entryUuid: UUID?, prefill: VaultEntry?) {
                 val allGroups = state.vaultManager.vault.groups.toList()
                 if (allGroups.isNotEmpty()) {
                     Text(Strings["groups"], style = MaterialTheme.typography.titleSmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
                         allGroups.forEach { group ->
                             FilterChip(
                                 selected = group.uuid in groups,
@@ -346,7 +328,7 @@ fun EditEntryScreen(state: AppState, entryUuid: UUID?, prefill: VaultEntry?) {
                     }
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.medium)) {
                     OutlinedTextField(
                         value = digits,
                         onValueChange = { digits = it; error = null },
@@ -387,7 +369,7 @@ fun EditEntryScreen(state: AppState, entryUuid: UUID?, prefill: VaultEntry?) {
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Spacing.small))
             Text(Strings["code_preview"], style = MaterialTheme.typography.titleSmall)
             Text(
                 text = preview ?: "——————",
