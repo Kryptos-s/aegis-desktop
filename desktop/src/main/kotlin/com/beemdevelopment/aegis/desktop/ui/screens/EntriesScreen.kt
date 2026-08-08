@@ -23,7 +23,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -194,7 +194,7 @@ fun EntriesScreen(state: AppState) {
 
                     Box {
                         IconButton(onClick = { showSortMenu = true }) {
-                            Icon(Icons.Default.Sort, contentDescription = Strings["sort_by"])
+                            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = Strings["sort_by"])
                         }
                         DropdownMenu(showSortMenu, onDismissRequest = { showSortMenu = false }) {
                             SortCategory.entries.forEach { category ->

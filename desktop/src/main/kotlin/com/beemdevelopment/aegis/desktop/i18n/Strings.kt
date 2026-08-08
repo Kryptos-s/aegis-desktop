@@ -163,7 +163,7 @@ object Strings {
                                         quantity = reader.getAttributeValue(null, "quantity")
                                         val text = unescape(readText(reader))
                                         if (quantity != null) {
-                                            plurals.getOrPut(pluralName!!) { LinkedHashMap() }[quantity!!] = text
+                                            plurals.getOrPut(pluralName) { LinkedHashMap() }[quantity] = text
                                         }
                                     }
                                 }

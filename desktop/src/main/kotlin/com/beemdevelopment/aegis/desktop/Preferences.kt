@@ -182,7 +182,7 @@ class Preferences(private val file: Path) {
         return result
     }
 
-    private fun writeUuidMap(key: String, value: Map<UUID, out Number>) {
+    private fun writeUuidMap(key: String, value: Map<UUID, Number>) {
         val obj = JSONObject()
         for ((uuid, number) in value) {
             obj.put(uuid.toString(), number)

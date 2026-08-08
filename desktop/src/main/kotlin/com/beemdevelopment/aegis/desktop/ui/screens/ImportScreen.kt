@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -157,7 +157,7 @@ fun ImportScreen(state: AppState) {
                 title = { Text(Strings["import_label"]) },
                 navigationIcon = {
                     IconButton(onClick = { state.back() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = Strings["back"])
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["back"])
                     }
                 },
             )

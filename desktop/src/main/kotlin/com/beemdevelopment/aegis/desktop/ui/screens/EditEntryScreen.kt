@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -215,7 +215,7 @@ fun EditEntryScreen(state: AppState, entryUuid: UUID?, prefill: VaultEntry?) {
                 title = { Text(if (existing == null) Strings["new_entry"] else Strings["edit"]) },
                 navigationIcon = {
                     IconButton(onClick = { state.back() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = Strings["cancel"])
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = Strings["cancel"])
                     }
                 },
                 actions = {
