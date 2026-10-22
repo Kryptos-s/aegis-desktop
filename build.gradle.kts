@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.protobuf) apply false
 }
 
-val appVersion: String by extra("0.1.0")
+val appVersion: String by extra("0.1.1")
 
 subprojects {
     tasks.withType<JavaCompile>().configureEach {

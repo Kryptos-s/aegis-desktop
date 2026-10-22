@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.compose)
 }
 
-val appVersion = "0.1.0"
+val appVersion = "0.1.1"
 
 kotlin {
     jvmToolchain(21)

@@ -1,23 +1,23 @@
 [versions]
-kotlin = "2.4.10"
-compose = "1.11.1"
+kotlin = "2.4.21"
+compose = "1.12.2"
 coroutines = "1.11.0"
 
 # Core (security-critical) dependencies. Keep this list as short as possible:
 # every entry here is code that runs in the same address space as the vault key.
-bouncycastle = "1.85"
+bouncycastle = "1.86"
 jspecify = "1.0.1"
-json = "20260719"
-protobuf = "4.35.1"
+json = "20260814"
+protobuf = "4.36.2"
 protobufPlugin = "0.10.0"
 zxing = "3.5.4"
 zip4j = "2.11.6"
-sqliteJdbc = "3.53.2.1"
+sqliteJdbc = "3.53.4.0"
 sfmCsv = "9.0.2"
 
 # Desktop / platform integration
 jna = "5.19.1"
-slf4j = "2.0.18"
+slf4j = "2.0.20"
 
 # Test
 junit = "4.13.2"

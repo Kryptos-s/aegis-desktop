@@ -12,6 +12,13 @@ It reads and writes the same vault file as the Android app, so one vault works o
 the primary target. Windows and macOS build and have platform backends written, but neither has
 been run yet.
 
+## Current version
+
+Desktop **0.1.1**, updated on 2026-10-22 with the applicable changes from Android Aegis
+**v3.4.3** (`d6f4e592`): the icon-pack path traversal fix and refreshed translations. Encrypted
+Proton Authenticator import was already included. Android UI and SDK changes do not apply to this
+port. The vault format is unchanged.
+
 ## What works
 
 Unlock, the entry list with live codes, adding and editing entries, groups, search and filtering,

@@ -27,6 +27,10 @@
   <url type="homepage">https://github.com/Kryptos-s/aegis-desktop</url>
   <url type="bugtracker">https://github.com/Kryptos-s/aegis-desktop/issues</url>
 
+  <releases>
+    <release version="0.1.1" date="2026-10-22"/>
+  </releases>
+
   <content_rating type="oars-1.1"/>
 
   <categories>
